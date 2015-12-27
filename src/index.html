@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Houston Community Eats</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+        <!-- Custom styles for this template -->
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        <link href="bootstrap-social.css" rel="stylesheet">
+        <link href="bootstrap-rating.css" rel="stylesheet">
+        <link href="bootstrap-slider.css" rel="stylesheet">
+        <script src="bootstrap-rating-min.js"></script>
+        <script src="bootstrap-slider.js"></script>
+        <link href="index.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="http://js.arcgis.com/3.13/esri/css/esri.css">
+        <link rel="stylesheet" type="text/css" href="http://esri.github.io/bootstrap-map-js/src/css/bootstrapmap.css">   
+
+        
+
+    
+    </head>
+
+    <body>
+    <div id="instructions" class="instructions">
+    What are you in the mood for? Select a cuisine below.</br>Bon appétit!
+    </div>
+
+            <!-- About Modal -->
+<div class="modal fade" id="about_modal" tabindex="-1" role="dialog" aria-labelledby="about_modal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Welcome to Foodie Paradise!</h4>
+      </div>
+      <div class="modal-body">
+        <p>
+            Houston Community Eats is an interactive web application designed for and by Houston area foodies. We live in such a wonderfully diverse community and we don't get to explore all the culinary gems around us because we don't actually know where they are. This application allows not only searching for restaurants by nationality, but actually seeing where there is a concentration of restaurants of the same type. Generally, that denotes an area where a certain culture has settled, and increases the chances of finding that elusive "authentic" international food. 
+        </p><p>
+Additionally, the app aggregates Google, Yelp and Houston Health Department Inspection scores to provide everyone with a better picture of not only what type of food they are getting, but the quality, the experience, and of course the cleanliness of the place. 
+        </p><p>
+Go ahead, pick you favorite international cuisine type from the bottom slider and go on an adventure. And if you discover a true gem, please do let us know! We are foodies after all! Bon appétit!
+
+        </p>
+        <p>
+            <a href="https://twitter.com/codergrl" target="_blank" class="btn btn-block btn-social btn-twitter">
+                <i class="fa fa-twitter"></i> @codergrl
+              </a>
+        </p>
+        <p>
+            <a href="https://twitter.com/mor3havoc" target="_blank" class="btn btn-block btn-social btn-twitter">
+                <i class="fa fa-twitter"></i> @mor3havoc
+              </a>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end about modal-->
+
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="http://hackhou15.codergrl.com">Houston Community Eats</a>
+                </div>
+                <div id="navbar" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="http://hackhou15.codergrl.com">Home</a></li>
+                        <li><a href="http://houstonareafarmersmarkets.com">See More Data</a></li>
+                        <li><a href="#about" data-toggle="modal"  data-target="#about_modal">About</a></li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+        </nav>
+        
+        <div class="middle">
+            <div class="full-screen" id="map">
+                <div id="LocateButton"></div>
+                <div id="HomeButton"></div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="container slider_container">
+                <input id="layer_slider" style="width:100%" type="text"/>
+            </div>
+        </div>
+
+        <script src="bootstrap-toolkit-min.js"></script>
+        <script type="text/javascript">
+            var package_path = "//esri.github.com/bootstrap-map-js/src/js";
+            var dojoConfig = {
+                packages: [{
+                    name: "application",
+                    location: package_path
+                }]
+            };
+        </script>
+        <script src="http://js.arcgis.com/3.13/"></script>
+
+        <script>
+        require(["esri/map", 
+                 "application/bootstrapmap", 
+                 "esri/InfoTemplate",
+                 "esri/dijit/LocateButton",
+                 "esri/dijit/HomeButton",
+                 "esri/dijit/Search",
+                 "dojo/domReady!"], 
+          function(Map, 
+                   BootstrapMap,
+                   InfoTemplate,
+                   LocateButton,
+                   HomeButton,
+                   Search) 
+          {
+            // Get a reference to the ArcGIS Map class
+            var map_deferred = BootstrapMap.createWebMap("be75e71333334872af7eff9990e1ac32", "map",{});
+            map_deferred.then(function(map_container)
+            {
+                //Configure Map widgets
+                var map = map_container.map;
+                geoLocate = new LocateButton({ map: map }, "LocateButton");
+                geoLocate.startup();
+
+                //Home Button
+                var homeButton = new HomeButton({
+                    theme: "HomeButton",
+                    map: map,
+                    extent: null,
+                    visible: true
+                }, "HomeButton");
+                homeButton.startup();
+
+                //Find the layer
+                var facility_layer = map.getLayer(map.graphicsLayerIds[0]);
+
+                // Search
+                // var s = new Search({
+                //     enableButtonMode: false, //this enables the search widget to display as a single button
+                //     enableLabel: false,
+                //     enableInfoWindow: true,
+                //     showInfoWindowOnSelect: false,
+                //     map: map
+                //  }, "search");
+
+                // var sources = [];
+                // sources.push({
+                //     featureLayer: facility_layer,
+                //     searchFields: ["FacilityName"],
+                //     displayField: "FacilityName",
+                //     exactMatch: false,
+                //     outFields: ["FacilityName"],
+                //     name: "Name",
+                //     placeholder: "Find some Culture!",
+                //     maxResults: 6,
+                //     maxSuggestions: 6,
+
+                //     //Create an InfoTemplate and include three fields
+                //     infoTemplate: new InfoTemplate("Place to Eat", "${FacilityName}"),
+                //     enableSuggestions: true,
+                //     minCharacters: 0
+                //  });
+                // s.set("sources", sources);
+
+                // s.startup();
+
+                
+
+                var format_rating_number = function(value)
+                {
+                    if (value >=4)
+                    {
+                        return "<span class='font-rating-4'>&nbsp;"+Math.round(value * 100) / 100+"</span>";
+                    }
+                    else if (value < 4 && value > 2)
+                    {
+                        return "<span class='font-rating-3'>&nbsp;"+Math.round(value * 100) / 100+"</span>";
+                    }
+                    else if (value <= 2)
+                    {
+                        return "<span class='font-rating-2'>&nbsp;"+Math.round(value * 100) / 100+"</span>";
+                    }
+
+                    return "N/A";
+                    
+                };
+
+                var get_window_content = function(graphic)
+                {
+                    console.log(graphic);
+                    var html = "";
+                    html += "<img src='" + graphic.attributes.YelpStarUrl + "'>"+format_rating_number(graphic.attributes.YelpRating)+"&nbsp; (yelp)</br>";
+                    html += "<input type='hidden' class='rating' readonly='readonly' value=" + Math.round(graphic.attributes.GoogleRating) + "/>"+format_rating_number(graphic.attributes.GoogleRating)+"&nbsp; (google)</br>";
+                    html += "<input type='hidden' class='rating' readonly='readonly' value=" + Math.round(graphic.attributes.HealthDepartmentRating) + " data-filled='glyphicon glyphicon-heart' data-empty='glyphicon glyphicon-heart-empty'/>"+format_rating_number(graphic.attributes.HealthDepartmentRating)+"&nbsp; (health department)</br>";
+                    html += "<a target='_blank' href='https://www.google.com/maps/place/"+graphic.attributes.FacilityFullStreetAddress+"'>"+graphic.attributes.FacilityFullStreetAddress+"</br>";
+                    html += "</br><a target='_blank' href='http://www.houstontx.gov/health/food-establishment-complaint-intake-form'>Submit a Complaint</a>";
+                    return html;
+                };
+
+                var get_icon_for_score = function(value)
+                {
+                    console.log(value);
+                    if (value == 2)
+                    {
+                        return "<img class='thumbs-up' src='http://www.hackhou15.codergrl.com/Images/2.png'>";
+                    }
+                    else if(value == 3)
+                    {
+                        return "<img class='thumbs-up' src='http://www.hackhou15.codergrl.com/Images/3.png'>";
+                    }
+                    else if(value == 4)
+                    {
+                        return "<img class='thumbs-up' src='http://www.hackhou15.codergrl.com/Images/4.png'>";
+                    }
+                    else if(value == 5)
+                    {
+                        return "<img class='thumbs-up' src='http://www.hackhou15.codergrl.com/Images/5.png'>";
+                    }
+                };
+
+                var get_header_content = function(graphic)
+                {
+                    return get_icon_for_score(graphic.attributes.CompositeRating) + "&nbsp;" + graphic.attributes.FacilityName;
+                };
+
+                //Configure the Info Window
+                var infoTemplate = new InfoTemplate();
+                //infoTemplate.setTitle("${CompositeRating:get_icon_for_score}&nbsp;${FacilityName}");
+                infoTemplate.setTitle(get_header_content);
+                infoTemplate.setContent(get_window_content);
+                facility_layer.infoTemplate = infoTemplate;
+
+                map.infoWindow.on("show", function(evt)
+                {
+                    $('.rating').rating();
+                });
+
+                var get_layer_by_url = function(url)
+                {
+                    var layer_list = map_container.itemInfo.itemData.operationalLayers;
+                    for(var j = 1; j < layer_list.length; j++) 
+                    {
+                        var layer = layer_list[j];
+                        if (layer.url == url)
+                        {
+                            return layer.title;
+                        }
+                    }
+                    return "";
+                };
+
+                var where_clause = {
+                    'None': '',
+                    'Chinese': "FacilityCuisine = 'CHINESE'",
+                    'European': "FacilityCuisine = 'EUROPEAN'",
+                    'French': "FacilityCuisine = 'FRENCH'",
+                    'Greek': "FacilityCuisine = 'GREEK'",
+                    'Indian': "FacilityCuisine = 'INDIAN / PAKISTANI'",
+                    'Italian': "FacilityCuisine = 'ITALIAN'",
+                    'Japanese': "FacilityCuisine = 'JAPANESE'",
+                    'Korean': "FacilityCuisine = 'KOREAN'",
+                    'Local': "FacilityCuisine = 'LOCAL / CONTINENTAL'",
+                    'Hispanic': "FacilityCuisine = 'MEXICAN / HISPANIC'",
+                    'Middle Eastern': "FacilityCuisine = 'MIDDLE EASTERN'",
+                    'Soul': "FacilityCuisine = 'SOUL FOOD'",
+                    'Thai': "FacilityCuisine = 'THAI'",
+                    'Vietnamese': "FacilityCuisine = 'VIETNAMESE'"
+                };
+
+                var short_names = {
+                    "Local":"US", 
+                    "Vietnamese":"VN", 
+                    "Thai":"TH", 
+                    "Middle Eastern":"ME", 
+                    "Korean":"KR", 
+                    "Japanese":"JP", 
+                    "Italian":"IT", 
+                    "Indian":"IN", 
+                    "Hispanic":"ES", 
+                    "Greek":"GR", 
+                    "French":"FR", 
+                    "Chinese":"CN", 
+                    "European":"EU"};
+
+                var short_names_reverse = {
+                    "US":"Local",
+                    "VN":"Vietnamese",
+                    "TH":"Thai", 
+                    "ME":"Middle Eastern", 
+                    "KR":"Korean", 
+                    "JP":"Japanese", 
+                    "IT":"Italian", 
+                    "IN":"Indian", 
+                    "ES":"Hispanic", 
+                    "GR":"Greek", 
+                    "FR":"French", 
+                    "CN":"Chinese", 
+                    "EU":"European",
+                    "N/A": "None"};
+
+
+                var use_small = false;
+                var tick_labels = ["None"];
+                var tooltip_display = "hide";
+                console.log(ResponsiveBootstrapToolkit.current());
+                if( ResponsiveBootstrapToolkit.is('<=sm') ) 
+                {
+                    use_small = true;
+                    tick_labels = ["N/A"];
+                    tooltip_display = 'always';
+                }
+                var ticks = [0];
+                $(".tooltip-inner").html(tick_labels[0]);
+                
+                for(var j = 1; j < map.graphicsLayerIds.length; j++) 
+                {
+                    var layer = map.getLayer(map.graphicsLayerIds[j]);
+                    var tick = j * 100;
+                    var tick_label = get_layer_by_url(layer.url);
+                    if (use_small)
+                    {
+                        tick_label = short_names[tick_label];
+                    }
+                    ticks.push(tick);
+                    tick_labels.push(tick_label);
+                }
+
+                
+                var layer_slider_object = $("#layer_slider").slider({
+                    value: 0,
+                    ticks: ticks,
+                    ticks_labels: tick_labels,
+                    ticks_snap_bounds: 30,
+                    step: 100,
+                    tooltip: tooltip_display,
+                    short_names: short_names_reverse
+                });
+                layer_slider_object.on('slideStop', function(evt)
+                {
+                    console.log(evt);
+                    $("#instructions").hide();
+                    //Turn off all layers
+                    for(var j = 1; j < map.graphicsLayerIds.length; j++) 
+                    {
+                        var layer = map.getLayer(map.graphicsLayerIds[j]);
+                        layer.hide();
+                        if (j == evt.value/100)
+                        {
+                            layer.show();
+                            var where = where_clause[tick_labels[j]];
+                            if( ResponsiveBootstrapToolkit.is('<=sm') ) 
+                            {
+                                where = where_clause[short_names_reverse[tick_labels[j]]];
+                            }
+                            facility_layer.setDefinitionExpression(where);
+                        }
+                    }
+                    if (evt.value == 0)
+                    {
+                        facility_layer.setDefinitionExpression(where_clause['None']);
+                    }
+
+                    facility_layer.refresh();
+                });
+
+                $(window).resize(
+                    ResponsiveBootstrapToolkit.changed(function()
+                    {
+                        //console.log($("#layer_slider").slider());//.relayout();
+                        //layer_slider_object.relayout();
+                        // console.log("outer here");
+                        // if( ResponsiveBootstrapToolkit.is('xs') ) 
+                        // {
+                        //     console.log("here");
+                        // }
+                    })
+                );
+                
+
+
+            });
+        });
+    </script>
+    </body>
+</html>
